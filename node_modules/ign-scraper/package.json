@@ -1,0 +1,19 @@
+{
+  "name": "ign-scraper",
+  "description": "Extracts video game information from IGN",
+  "version": "0.1.0",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/blaqmajik/ign-scraper.git"
+  },
+  "keywords": [
+    "ign",
+    "scraper"
+  ],
+  "dependencies": {
+    "promise": "^7.1.1",
+    "x-ray": "^2.3.0"
+  },
+  "license": "MIT"
+}
