@@ -5,7 +5,8 @@ import pandas as pd
 ign_url = 'https://www.ign.com/news'
 ign = newspaper.build(ign_url, memoize_articles=False)
 
-num_articles = min(3, len(ign.articles))
+# Amount of Scraped Articles (default is 20 because of outOfIndex)
+num_articles = min(20, len(ign.articles))
 
 # Leere Liste wird erstellt um die Artikel Infos zu speichern
 articles_data = []
