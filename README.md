@@ -1,7 +1,7 @@
 # Scrape2WP
 
 To-Do🚧:
-- Transform CSV via OpenAI API (Title and Text; keep publish_date original!)
+- Transform CSV via OpenAI API with GPT 3.5 (Title and Text; keep publish_date original!)
 - Scraped Articles to WP with publish_date and transformed title, text
 
 Usage🤖:
