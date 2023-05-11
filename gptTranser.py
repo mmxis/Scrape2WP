@@ -2,7 +2,7 @@ import pandas as pd
 import openai
 
 # OPEN AI API Segment
-api_key = 'Dein OopenAI API Key'
+api_key = 'deinOpenAI-Key'
 openai.api_key = api_key
 
 # CSV-Datei laden die die gescrapten Artikel beinhaltet
@@ -11,71 +11,47 @@ df = pd.read_csv(csv_file)
 
 # Funktion, um Text mithilfe der OpenAI API zusammenzufassen und zu übersetzen
 def summarize_and_translate_text(text, source_language='en', target_language='de'):
-    # Zusammenfassen
-    summary_response = openai.Completion.create(
+    # Zusammenfassen und übersetzen
+    response = openai.Completion.create(
         engine="text-davinci-002",
-        prompt=f"Please provide a similar version of the following text and make it plagiarism free: {text}",
+        prompt=(
+            f"Please provide a similar version of the following text and make it plagiarism free and delete any links inside the text: {text}\n\n"
+            f"Translate the summarized text from {source_language} to {target_language}, keeping names, brands, or organizations as they are in the original text:\n"
+        ),
         max_tokens=1024,
         n=1,
         stop=None,
-        temperature=0.8,
+        temperature=0.5,
     )
 
-    if summary_response.choices:
-        summarized_text = summary_response.choices[0].text.strip()
-    else:
-        raise Exception('OpenAI API call failed')
-
-    # Funktion zum Übersetzen der vorherigen Funktion
-    translation_response = openai.Completion.create(
-        engine="text-davinci-002",
-        prompt=f"Translate the following text from {source_language} to {target_language}: {summarized_text}, keep names,brands or organizations as it is in the original in the text.",
-        max_tokens=1024,
-        n=1,
-        stop=None,
-        temperature=0.8,
-    )
-
-    if translation_response.choices:
-        translated_text = translation_response.choices[0].text.strip()
+    if response.choices:
+        translated_text = response.choices[0].text.strip()
     else:
         raise Exception('OpenAI API call failed')
 
     return translated_text
 
-# Funktion, um Text mithilfe der OpenAI API zusammenzufassen und zu übersetzen
-def summarize_and_translate_title(text, source_language='en', target_language='de'):
-    # Zusammenfassen
-    summary_response = openai.Completion.create(
-        engine="text-davinci-002",
-        prompt=f"Please provide a similar version of the following text and make it plagiarism free: {text}",
-        max_tokens=1024,
+def summarize_and_translate_title(title, source_language='en', target_language='de'):
+    # Zusammenfassen und übersetzen
+    response = openai.Completion.create(
+        engine="text-curie-001",
+        prompt=(
+            f"Please provide a similar version of the following text with a minimum of 35 characters and a maximum of 80 characters, and make it plagiarism-free: {title}\n\n"
+            f"Translate the summarized title from {source_language} to {target_language}, keeping names, brands, or organizations as they are in the original text. Make sure that the text fits well as a title on a news page and does not exceed 80 characters:\n"
+        ),
+        max_tokens=500,
         n=1,
         stop=None,
-        temperature=0.8,
+        temperature=0.7,
     )
 
-    if summary_response.choices:
-        summarized_text = summary_response.choices[0].text.strip()
+    if response.choices:
+        translated_title = response.choices[0].text.strip()
     else:
         raise Exception('OpenAI API call failed')
 
-    # Funktion zum Übersetzen der vorherigen Funktion
-    translation_response = openai.Completion.create(
-        engine="text-davinci-002",
-        prompt=f"Translate the following text from {source_language} to {target_language}: {summarized_text} keep names brands or organizations as it is in the original in the text.Make sure that the text fits good as a title on a news page and do not exceed 80 characters.",
-        max_tokens=1024,
-        n=1,
-        stop=None,
-        temperature=0.8,
-    )
+    return translated_title
 
-    if translation_response.choices:
-        translated_text = translation_response.choices[0].text.strip()
-    else:
-        raise Exception('OpenAI API call failed')
-
-    return translated_text
 
 # Zusammenfassen und Übersetzen für jede Zeile in den gewählten Spalten
 for idx, row in df.iterrows():
@@ -99,5 +75,3 @@ for idx, row in df.iterrows():
 output_csv_file = 'modified_csv_file.csv'
 df.to_csv(output_csv_file, index=False)
 print(f"Modified CSV file saved as {output_csv_file}")
-
-
