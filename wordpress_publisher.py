@@ -1,26 +1,53 @@
+import pandas as pd
+import requests
+import json
+import base64
+import datetime
+import ssl
 from wordpress_xmlrpc import Client, WordPressPost
 from wordpress_xmlrpc.methods.posts import NewPost
-from wordpress_xmlrpc.methods.media import UploadFile
 
-def publish_to_wordpress(wp_client, article):
-    # Bild hochladen
-    image_data = requests.get(article['image_url']).content
-    image_name = article['image_url'].split('/')[-1]
+# SSL-Zertifikatsüberprüfung deaktivieren (Nur für Testzwecke)
+ssl._create_default_https_context = ssl._create_unverified_context
 
-    media = {
-        'name': image_name,
-        'type': 'image/jpeg',
-        'bits': image_data
-    }
+# Ersetzen Sie diese Informationen mit Ihren WordPress-Anmeldedaten
+wp_url = "https://gameologen.de/xmlrpc.php"
+wp_username = "username"
+wp_password = "password"
 
-    image_id = wp_client.call(UploadFile(media))['id']
+# CSV-Datei laden
+csv_file = 'modified_csv_file.csv'
+df = pd.read_csv(csv_file)
 
-    # Artikel erstellen und veröffentlichen
+# WordPress-Client erstellen
+client = Client(wp_url, wp_username, wp_password)
+
+# Artikel aus der CSV-Datei auf der WordPress-Seite hochladen
+for idx, row in df.iterrows():
     post = WordPressPost()
-    post.title = article['title']
-    post.content = article['rewritten_content']
+    post.title = row['title']
+    post.content = row['text']
+    #post.date = row['date']  # Stellen Sie sicher, dass die Spalte 'date' in der CSV-Datei vorhanden ist
     post.post_status = 'publish'
-    post.thumbnail = image_id
+    post.author = 'your_author_id'  # Ersetzen Sie 'your_author_id' durch die ID Ihres Autors
 
-    post_id = wp_client.call(NewPost(post))
-    return post_id
+    if pd.isna(row['date']):
+        print(f"Row {idx + 1}: Invalid date value. Using current date as default.")
+        post.date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    else:
+        post.date = row['date']
+
+    # Optional: Fügen Sie Kategorien und Tags hinzu
+    # post.terms_names = {
+    #     'category': ['Category 1', 'Category 2'],
+    #     'post_tag': ['Tag 1', 'Tag 2'],
+    # }
+
+    try:
+        post_id = client.call(NewPost(post))
+        print(f"Row {idx + 1}: Article uploaded with post ID = {post_id}")
+    except ValueError as e:
+        print(f"Row {idx + 1}: Error uploading article - {e}")
+
+    post_id = client.call(NewPost(post))
+    print(f"Row {idx + 1}: Article uploaded with post ID = {post_id}")
