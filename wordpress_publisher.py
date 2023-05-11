@@ -13,7 +13,7 @@ ssl._create_default_https_context = ssl._create_unverified_context
 # Ersetzen Sie diese Informationen mit Ihren WordPress-Anmeldedaten
 wp_url = "https://gameologen.de/xmlrpc.php"
 wp_username = "username"
-wp_password = "password"
+wp_password = "pw"
 
 # CSV-Datei laden
 csv_file = 'modified_csv_file.csv'
@@ -29,19 +29,24 @@ for idx, row in df.iterrows():
     post.content = row['text']
     #post.date = row['date']  # Stellen Sie sicher, dass die Spalte 'date' in der CSV-Datei vorhanden ist
     post.post_status = 'publish'
-    post.author = 'your_author_id'  # Ersetzen Sie 'your_author_id' durch die ID Ihres Autors
+    post.author = '2'  # Ersetzen Sie 'your_author_id' durch die ID Ihres Autors
+
 
     if pd.isna(row['date']):
         print(f"Row {idx + 1}: Invalid date value. Using current date as default.")
         post.date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     else:
-        post.date = row['date']
+        try:
+            post.date = datetime.datetime.strptime(row['date'], "%Y-%m-%d %H:%M:%S")
+        except ValueError as e:
+            print(f"Row {idx + 1}: Error parsing date - {e}")
+            post.date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     # Optional: Fügen Sie Kategorien und Tags hinzu
-    # post.terms_names = {
-    #     'category': ['Category 1', 'Category 2'],
-    #     'post_tag': ['Tag 1', 'Tag 2'],
-    # }
+    post.terms_names = {
+         'category': ['News'],
+        # 'post_tag': ['Tag 1', 'Tag 2'],
+    }
 
     try:
         post_id = client.call(NewPost(post))
@@ -49,5 +54,13 @@ for idx, row in df.iterrows():
     except ValueError as e:
         print(f"Row {idx + 1}: Error uploading article - {e}")
 
-    post_id = client.call(NewPost(post))
-    print(f"Row {idx + 1}: Article uploaded with post ID = {post_id}")
+
+
+    #try:
+    #    post_id = client.call(NewPost(post))
+    #    print(f"Row {idx + 1}: Article uploaded with post ID = {post_id}")
+    # except ValueError as e:
+    #   print(f"Row {idx + 1}: Error uploading article - {e}")
+
+    #post_id = client.call(NewPost(post))
+    #print(f"Row {idx + 1}: Article uploaded with post ID = {post_id}")
